@@ -1,4 +1,3 @@
-// extension.ts
 import * as vscode from 'vscode';
 
 let syncEnabled = true;
@@ -34,25 +33,25 @@ export function activate(context: vscode.ExtensionContext) {
     const activePos = sourceEditor.selection.active;
     const prevPos = lastCursorPositionByEditor.get(sourceEditor);
 
-    // Jangan sinkronkan jika penempatan kursor pertama kali atau tidak ada perubahan nyata
+    // Do not sync if it's the initial cursor placement or if there's no actual change
     if (!hasMovedOnce.get(sourceEditor)) {
       hasMovedOnce.set(sourceEditor, true);
-      return; // Menunggu gerakan kursor pertama kali
+      return; // Waiting for the first real cursor movement
     }
 
-    // Sinkronkan hanya jika posisi kursor benar-benar berubah
+    // Sync only if the cursor position has actually changed
     if (!prevPos || !activePos.isEqual(prevPos)) {
       lastUserEditor = sourceEditor;
       lastCursorPositionByEditor.set(sourceEditor, activePos);
     } else {
-      return; // Jangan sinkronkan jika tidak ada perubahan nyata
+      return; // Skip if no meaningful change detected
     }
 
     const now = Date.now();
     if (now - lastSync < debounceTime) return;
     lastSync = now;
 
-    // Sinkronisasi hanya jika jendela yang aktif adalah editor yang sedang dipindahkan kursor
+    // Only synchronize if the active window matches the editor where the cursor is moving
     if (activeEditorForSync !== sourceEditor) return;
 
     const targetEditors = vscode.window.visibleTextEditors.filter(
@@ -75,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor(editor => {
     if (!editor || !syncEnabled) return;
 
-    // Set editor yang aktif untuk menjadi acuan sinkronisasi hanya jika kursor bergerak di sana
+    // Set the currently active editor as the master synchronization reference
     activeEditorForSync = editor;
   });
 }
